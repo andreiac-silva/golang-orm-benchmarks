@@ -15,7 +15,7 @@ type GormBenchmark struct {
 	db *gorm.DB
 }
 
-func NewGormBenchmark() utils.Benchmark {
+func NewGormBenchmark() Benchmark {
 	return &GormBenchmark{}
 }
 
@@ -53,7 +53,7 @@ func (o *GormBenchmark) Close() error {
 }
 
 func (o *GormBenchmark) Insert(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -64,7 +64,6 @@ func (o *GormBenchmark) Insert(b *testing.B) {
 		book.ID = 0
 		b.StartTimer()
 
-		// Gorm insert implementation.
 		err := o.db.Create(book).Error
 
 		b.StopTimer()
@@ -76,8 +75,8 @@ func (o *GormBenchmark) Insert(b *testing.B) {
 }
 
 func (o *GormBenchmark) InsertBulk(b *testing.B) {
-	utils.BeforeBenchmark()
-	books := model.NewBooks(200)
+	BeforeBenchmark()
+	books := model.NewBooks(utils.InsertNumberItems)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -89,7 +88,6 @@ func (o *GormBenchmark) InsertBulk(b *testing.B) {
 		}
 		b.StartTimer()
 
-		// Gorm insert bulk implementation.
 		err := o.db.Create(&books).Error
 
 		b.StopTimer()
@@ -101,7 +99,7 @@ func (o *GormBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (o *GormBenchmark) Update(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	err := o.db.Create(book).Error
@@ -113,11 +111,6 @@ func (o *GormBenchmark) Update(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		book.Title = "Updated title"
-		b.StartTimer()
-
-		// Gorm update implementation.
 		err = o.db.Save(book).Error
 
 		b.StopTimer()
@@ -129,7 +122,7 @@ func (o *GormBenchmark) Update(b *testing.B) {
 }
 
 func (o *GormBenchmark) Delete(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	books := model.NewBooks(n)
@@ -147,7 +140,6 @@ func (o *GormBenchmark) Delete(b *testing.B) {
 		bookID := books[i].ID
 		b.StartTimer()
 
-		// Gorm delete implementation.
 		err = o.db.Delete(&model.Book{}, bookID).Error
 
 		b.StopTimer()
@@ -159,7 +151,7 @@ func (o *GormBenchmark) Delete(b *testing.B) {
 }
 
 func (o *GormBenchmark) FindByID(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	books := model.NewBooks(n)
@@ -178,7 +170,6 @@ func (o *GormBenchmark) FindByID(b *testing.B) {
 		bookID := books[i].ID
 		b.StartTimer()
 
-		// Gorm get by id implementation.
 		err = o.db.First(book, bookID).Error
 
 		b.StopTimer()
@@ -190,14 +181,13 @@ func (o *GormBenchmark) FindByID(b *testing.B) {
 }
 
 func (o *GormBenchmark) FindPaginating(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
-	limit := 10
-	books := model.NewBooks(limit * n)
+	books := model.NewBooks(n)
 
 	// Persist it in batches > https://github.com/bitmagnet-io/bitmagnet/issues/126.
-	batches := model.Chunk(books, 10000)
+	batches := model.Chunk(books, utils.BatchSize)
 	for _, chunk := range batches {
 		err := o.db.Create(chunk).Error
 		if err != nil {
@@ -209,17 +199,12 @@ func (o *GormBenchmark) FindPaginating(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	var cursor int64
-	var saved []*model.Book
-
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < n; i++ {
 		b.StopTimer()
-		cursor = model.GetMaxID(saved)
-		saved = nil
+		booksPage := make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
-		// Gorm find paginating implementation.
-		err := o.db.Limit(limit).Where("id > ?", cursor).Find(&saved).Error
+		err := o.db.Limit(utils.PageSize).Where("id > ?", i).Find(&booksPage).Error
 
 		b.StopTimer()
 		if err != nil {

@@ -1,15 +1,14 @@
 package utils
 
 import (
-	"database/sql"
-	"log"
 	"os"
 	"strconv"
+)
 
-	queries "github.com/andreiac-silva/golang-orm-benchmarks/sql"
-
-	// Postgres driver.
-	_ "github.com/jackc/pgx/v4/stdlib"
+const (
+	InsertNumberItems = 2000
+	BatchSize         = 10000
+	PageSize          = 10
 )
 
 var (
@@ -36,21 +35,5 @@ func init() {
 	PostgresMaxIdleConn, err = strconv.Atoi(maxIdleConnStr)
 	if err != nil {
 		panic("POSTGRES_MAX_IDLE_CONN is required")
-	}
-}
-
-func recreateDatabase() {
-	db, err := sql.Open("pgx", PostgresDSN)
-	if err != nil {
-		log.Fatal("the benchmark execution was aborted", err)
-	}
-
-	defer func() {
-		_ = db.Close()
-	}()
-
-	_, err = db.Exec(queries.RecreateDatabaseSQL)
-	if err != nil {
-		log.Fatal("the benchmark execution was aborted", err)
 	}
 }

@@ -18,7 +18,7 @@ type BunBenchmark struct {
 	ctx context.Context
 }
 
-func NewBunBenchmark() utils.Benchmark {
+func NewBunBenchmark() Benchmark {
 	return &BunBenchmark{ctx: context.Background()}
 }
 
@@ -35,7 +35,7 @@ func (o *BunBenchmark) Close() error {
 }
 
 func (o *BunBenchmark) Insert(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -46,7 +46,6 @@ func (o *BunBenchmark) Insert(b *testing.B) {
 		book.ID = 0
 		b.StartTimer()
 
-		// Bun insert implementation.
 		_, err := o.db.NewInsert().Model(book).Exec(o.ctx)
 
 		b.StopTimer()
@@ -58,8 +57,8 @@ func (o *BunBenchmark) Insert(b *testing.B) {
 }
 
 func (o *BunBenchmark) InsertBulk(b *testing.B) {
-	utils.BeforeBenchmark()
-	books := model.NewBooks(200)
+	BeforeBenchmark()
+	books := model.NewBooks(utils.InsertNumberItems)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -71,7 +70,6 @@ func (o *BunBenchmark) InsertBulk(b *testing.B) {
 		}
 		b.StartTimer()
 
-		// Bun bulk insert implementation.
 		_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)
 
 		b.StopTimer()
@@ -83,7 +81,7 @@ func (o *BunBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (o *BunBenchmark) Update(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	_, err := o.db.NewInsert().Model(book).Exec(o.ctx)
@@ -95,11 +93,6 @@ func (o *BunBenchmark) Update(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		book.Title = "Updated title"
-		b.StartTimer()
-
-		// Bun update implementation.
 		_, err = o.db.NewUpdate().Model(book).WherePK().Exec(o.ctx)
 
 		b.StopTimer()
@@ -111,7 +104,7 @@ func (o *BunBenchmark) Update(b *testing.B) {
 }
 
 func (o *BunBenchmark) Delete(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	books := model.NewBooks(n)
@@ -130,7 +123,6 @@ func (o *BunBenchmark) Delete(b *testing.B) {
 		book.ID = books[i].ID
 		b.StartTimer()
 
-		// Bun delete implementation.
 		_, err = o.db.NewDelete().Model(book).WherePK().Exec(o.ctx)
 
 		b.StopTimer()
@@ -142,7 +134,7 @@ func (o *BunBenchmark) Delete(b *testing.B) {
 }
 
 func (o *BunBenchmark) FindByID(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	books := model.NewBooks(n)
@@ -161,7 +153,6 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 		book := new(model.Book)
 		b.StartTimer()
 
-		// Bun find by id implementation.
 		err = o.db.NewSelect().Model(book).Where("id = ?", bookID).Scan(o.ctx)
 
 		b.StopTimer()
@@ -173,30 +164,24 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 }
 
 func (o *BunBenchmark) FindPaginating(b *testing.B) {
-	utils.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
-	limit := 10
-	books := model.NewBooks(10 * n)
+	books := model.NewBooks(n)
 	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)
 	if err != nil {
 		b.Error(err)
 	}
-
-	var cursor int64
-	var saved []*model.Book
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		cursor = model.GetMaxID(saved)
-		saved = nil
+		booksPage := make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
-		// Bun find with cursor pagination implementation.
-		err = o.db.NewSelect().Model(&saved).Where("id > ?", cursor).Limit(limit).Scan(o.ctx)
+		err = o.db.NewSelect().Model(&booksPage).Where("id > ?", i).Limit(utils.PageSize).Scan(o.ctx)
 
 		b.StopTimer()
 		if err != nil {

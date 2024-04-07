@@ -1,6 +1,10 @@
-package utils
+package benchmark
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/utils"
+)
 
 // Benchmark interface was inspired by https://github.com/efectn/go-orm-benchmarks/blob/master/helper/suite.go.
 type Benchmark interface {
@@ -15,5 +19,5 @@ type Benchmark interface {
 }
 
 func BeforeBenchmark() {
-	recreateDatabase()
+	utils.RecreateDatabase()
 }

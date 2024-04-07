@@ -5,16 +5,25 @@ import (
 	"testing"
 
 	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark"
+	raw "github.com/andreiac-silva/golang-orm-benchmarks/benchmark/raw"
 
-	// Automatic load environment variables from .env.
+	// Auto load .env file.
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	gorm := benchmark.NewGormBenchmark()
-	gorm.Init()
-
-	result := testing.Benchmark(gorm.FindPaginating)
-
+	r := raw.NewRawBenchmark()
+	r.Init()
+	result := testing.Benchmark(r.FindPaginating)
 	fmt.Println(result)
+
+	b := benchmark.NewBunBenchmark()
+	b.Init()
+	result1 := testing.Benchmark(b.FindPaginating)
+	fmt.Println(result1)
+
+	g := benchmark.NewGormBenchmark()
+	g.Init()
+	result2 := testing.Benchmark(g.FindPaginating)
+	fmt.Println(result2)
 }
