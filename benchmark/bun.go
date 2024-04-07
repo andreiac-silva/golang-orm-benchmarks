@@ -19,7 +19,7 @@ type BunBenchmark struct {
 }
 
 func NewBunBenchmark() utils.Benchmark {
-	return &BunBenchmark{}
+	return &BunBenchmark{ctx: context.Background()}
 }
 
 func (o *BunBenchmark) Init() error {
@@ -27,7 +27,6 @@ func (o *BunBenchmark) Init() error {
 	o.db = bun.NewDB(sqldb, pgdialect.New())
 	sqldb.SetMaxOpenConns(utils.PostgresMaxOpenConn)
 	sqldb.SetMaxIdleConns(utils.PostgresMaxIdleConn)
-	o.ctx = context.Background()
 	return nil
 }
 
@@ -96,6 +95,10 @@ func (o *BunBenchmark) Update(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		book.Title = "Updated title"
+		b.StartTimer()
+
 		// Bun update implementation.
 		_, err = o.db.NewUpdate().Model(book).WherePK().Exec(o.ctx)
 
@@ -109,18 +112,22 @@ func (o *BunBenchmark) Update(b *testing.B) {
 
 func (o *BunBenchmark) Delete(b *testing.B) {
 	utils.BeforeBenchmark()
-	book := model.NewBook()
+
+	n := b.N
+	books := model.NewBooks(n)
+
+	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)
+	if err != nil {
+		b.Error(err)
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < n; i++ {
 		b.StopTimer()
-		book.ID = 0
-		_, err := o.db.NewInsert().Model(book).Exec(o.ctx)
-		if err != nil {
-			b.Error(err)
-		}
+		book := &model.Book{}
+		book.ID = books[i].ID
 		b.StartTimer()
 
 		// Bun delete implementation.
@@ -134,7 +141,7 @@ func (o *BunBenchmark) Delete(b *testing.B) {
 	}
 }
 
-func (o *BunBenchmark) FindOne(b *testing.B) {
+func (o *BunBenchmark) FindByID(b *testing.B) {
 	utils.BeforeBenchmark()
 
 	n := b.N

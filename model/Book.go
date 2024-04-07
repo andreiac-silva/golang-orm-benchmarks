@@ -4,7 +4,7 @@ import "time"
 
 // Book represents a book from a bookstore system.
 type Book struct {
-	ID           int64 `bun:"id,pk,autoincrement"`
+	ID           int64 `bun:"id,pk,autoincrement" gorm:"primary_key"`
 	ISBN         string
 	Title        string
 	Author       string
@@ -52,4 +52,16 @@ func GetMaxID(books []*Book) int64 {
 		}
 	}
 	return maxID
+}
+
+func Chunk(input []*Book, batchSize int) [][]*Book {
+	var result [][]*Book
+	for i := 0; i < len(input); i += batchSize {
+		end := i + batchSize
+		if end > len(input) {
+			end = len(input)
+		}
+		result = append(result, input[i:end])
+	}
+	return result
 }

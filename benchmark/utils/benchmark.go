@@ -10,7 +10,7 @@ type Benchmark interface {
 	InsertBulk(b *testing.B)
 	Update(b *testing.B)
 	Delete(b *testing.B)
-	FindOne(b *testing.B)
+	FindByID(b *testing.B)
 	FindPaginating(b *testing.B)
 }
 

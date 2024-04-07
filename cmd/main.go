@@ -11,10 +11,10 @@ import (
 )
 
 func main() {
-	bun := benchmark.NewBunBenchmark()
-	bun.Init()
+	gorm := benchmark.NewGormBenchmark()
+	gorm.Init()
 
-	result := testing.Benchmark(bun.FindPaginating)
+	result := testing.Benchmark(gorm.FindPaginating)
 
 	fmt.Println(result)
 }
