@@ -1,20 +1,20 @@
-package benchmark
+package utils
 
 import _ "embed"
 
 var (
 	//go:embed sql/insert.sql
-	insertQuery string
+	InsertQuery string
 	//go:embed sql/insert_returning_id.sql
-	insertReturningIDQuery string
+	InsertReturningIDQuery string
 	//go:embed sql/insert_bulk.sql
-	insertBulkQuery string
+	InsertBulkQuery string
 	//go:embed sql/update.sql
-	updateQuery string
+	UpdateQuery string
 	//go:embed sql/delete.sql
-	deleteQuery string
+	DeleteQuery string
 	//go:embed sql/select_by_id.sql
-	selectByIDQuery string
+	SelectByIDQuery string
 	//go:embed sql/select_paginating.sql
-	selectPaginatingQuery string
+	SelectPaginatingQuery string
 )

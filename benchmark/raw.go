@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark"
 	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/utils"
 	"github.com/andreiac-silva/golang-orm-benchmarks/model"
 
@@ -18,15 +17,13 @@ type RawBenchmark struct {
 	db *sql.DB
 }
 
-func NewRawBenchmark() benchmark.Benchmark {
+func NewRawBenchmark() Benchmark {
 	return &RawBenchmark{}
 }
 
 func (r *RawBenchmark) Init() error {
 	var err error
 	r.db, err = sql.Open("pgx", utils.PostgresDSN)
-	r.db.SetMaxIdleConns(utils.PostgresMaxIdleConn)
-	r.db.SetMaxOpenConns(utils.PostgresMaxOpenConn)
 	return err
 }
 
@@ -35,14 +32,14 @@ func (r *RawBenchmark) Close() error {
 }
 
 func (r *RawBenchmark) Insert(b *testing.B) {
-	benchmark.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := r.db.Exec(insertQuery,
+		_, err := r.db.Exec(utils.InsertQuery,
 			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt)
 
 		b.StopTimer()
@@ -54,8 +51,8 @@ func (r *RawBenchmark) Insert(b *testing.B) {
 }
 
 func (r *RawBenchmark) InsertBulk(b *testing.B) {
-	benchmark.BeforeBenchmark()
-	books := model.NewBooks(3)
+	BeforeBenchmark()
+	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -72,11 +69,11 @@ func (r *RawBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (r *RawBenchmark) Update(b *testing.B) {
-	benchmark.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	var id int64
-	err := r.db.QueryRow(insertReturningIDQuery,
+	err := r.db.QueryRow(utils.InsertReturningIDQuery,
 		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
 	if err != nil {
 		b.Error(err)
@@ -86,7 +83,7 @@ func (r *RawBenchmark) Update(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err = r.db.Exec(updateQuery,
+		_, err = r.db.Exec(utils.UpdateQuery,
 			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt, id)
 
 		b.StopTimer()
@@ -98,7 +95,7 @@ func (r *RawBenchmark) Update(b *testing.B) {
 }
 
 func (r *RawBenchmark) Delete(b *testing.B) {
-	benchmark.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	book := model.NewBook()
@@ -106,7 +103,7 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 
 	for i := 0; i < n; i++ {
 		var id int64
-		err := r.db.QueryRow(insertReturningIDQuery,
+		err := r.db.QueryRow(utils.InsertReturningIDQuery,
 			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
 		if err != nil {
 			b.Error(err)
@@ -122,7 +119,7 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 		bookID := bookIDs[i]
 		b.StartTimer()
 
-		_, err := r.db.Exec(deleteQuery, bookID)
+		_, err := r.db.Exec(utils.DeleteQuery, bookID)
 
 		b.StopTimer()
 		if err != nil {
@@ -133,11 +130,11 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 }
 
 func (r *RawBenchmark) FindByID(b *testing.B) {
-	benchmark.BeforeBenchmark()
+	BeforeBenchmark()
 	book := model.NewBook()
 
 	var id int64
-	err := r.db.QueryRow(insertReturningIDQuery,
+	err := r.db.QueryRow(utils.InsertReturningIDQuery,
 		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
 	if err != nil {
 		b.Error(err)
@@ -148,7 +145,7 @@ func (r *RawBenchmark) FindByID(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var foundBook model.Book
-		err = r.db.QueryRow(selectByIDQuery, id).Scan(
+		err = r.db.QueryRow(utils.SelectByIDQuery, id).Scan(
 			&foundBook.ID,
 			&foundBook.ISBN,
 			&foundBook.Title,
@@ -167,7 +164,7 @@ func (r *RawBenchmark) FindByID(b *testing.B) {
 }
 
 func (r *RawBenchmark) FindPaginating(b *testing.B) {
-	benchmark.BeforeBenchmark()
+	BeforeBenchmark()
 
 	n := b.N
 	books := model.NewBooks(n)
@@ -181,12 +178,12 @@ func (r *RawBenchmark) FindPaginating(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		booksPage := make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
-		rows, err := r.db.Query(selectPaginatingQuery, i, utils.PageSize)
+		rows, err := r.db.Query(utils.SelectPaginatingQuery, i, utils.PageSize)
 
 		b.StopTimer()
 		if err != nil {
@@ -241,7 +238,7 @@ func (r *RawBenchmark) doInsertBulk(books []*model.Book) error {
 		valueArgs = append(valueArgs, book.PublicizedAt)
 	}
 
-	query := fmt.Sprintf(insertBulkQuery, strings.Join(valueStrings, ","))
+	query := fmt.Sprintf(utils.InsertBulkQuery, strings.Join(valueStrings, ","))
 
 	_, err := r.db.Exec(query, valueArgs...)
 

@@ -25,8 +25,6 @@ func NewBunBenchmark() Benchmark {
 func (o *BunBenchmark) Init() error {
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(utils.PostgresDSN)))
 	o.db = bun.NewDB(sqldb, pgdialect.New())
-	sqldb.SetMaxOpenConns(utils.PostgresMaxOpenConn)
-	sqldb.SetMaxIdleConns(utils.PostgresMaxIdleConn)
 	return nil
 }
 
@@ -58,7 +56,7 @@ func (o *BunBenchmark) Insert(b *testing.B) {
 
 func (o *BunBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
-	books := model.NewBooks(utils.InsertNumberItems)
+	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
 	b.ResetTimer()

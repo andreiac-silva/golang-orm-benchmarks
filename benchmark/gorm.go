@@ -20,6 +20,7 @@ func NewGormBenchmark() Benchmark {
 }
 
 func (o *GormBenchmark) Init() error {
+	var err error
 	// The config follows the performance section of the GORM documentation: https://gorm.io/docs/performance.html.
 	pgConfig := postgres.New(postgres.Config{
 		DSN:                  utils.PostgresDSN,
@@ -30,18 +31,8 @@ func (o *GormBenchmark) Init() error {
 		PrepareStmt:            true,
 		Logger:                 logger.Default.LogMode(logger.Silent),
 	}
-	db, err := gorm.Open(pgConfig, gormConfig)
-	if err != nil {
-		return err
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return err
-	}
-	o.db = db
-	sqlDB.SetMaxIdleConns(utils.PostgresMaxIdleConn)
-	sqlDB.SetMaxOpenConns(utils.PostgresMaxOpenConn)
-	return nil
+	o.db, err = gorm.Open(pgConfig, gormConfig)
+	return err
 }
 
 func (o *GormBenchmark) Close() error {
@@ -76,7 +67,7 @@ func (o *GormBenchmark) Insert(b *testing.B) {
 
 func (o *GormBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
-	books := model.NewBooks(utils.InsertNumberItems)
+	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
 	b.ResetTimer()
