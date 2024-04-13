@@ -10,7 +10,7 @@ import (
 	"github.com/andreiac-silva/golang-orm-benchmarks/model"
 
 	// Postgres driver.
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type RawBenchmark struct {
@@ -100,7 +100,6 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 	n := b.N
 	book := model.NewBook()
 	bookIDs := make([]int64, 0, n)
-
 	for i := 0; i < n; i++ {
 		var id int64
 		err := r.db.QueryRow(utils.InsertReturningIDQuery,
@@ -114,9 +113,10 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int64
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		bookID := bookIDs[i]
+		bookID = bookIDs[i]
 		b.StartTimer()
 
 		_, err := r.db.Exec(utils.DeleteQuery, bookID)
@@ -131,21 +131,30 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 
 func (r *RawBenchmark) FindByID(b *testing.B) {
 	BeforeBenchmark()
-	book := model.NewBook()
 
-	var id int64
-	err := r.db.QueryRow(utils.InsertReturningIDQuery,
-		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
-	if err != nil {
-		b.Error(err)
+	book := model.NewBook()
+	savedIDs := make([]int64, b.N)
+	for i := 0; i < b.N; i++ {
+		var id int64
+		err := r.db.QueryRow(utils.InsertReturningIDQuery,
+			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
+		if err != nil {
+			b.Error(err)
+		}
+		savedIDs[i] = id
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int64
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		bookID = savedIDs[i]
+		b.StartTimer()
+
 		var foundBook model.Book
-		err = r.db.QueryRow(utils.SelectByIDQuery, id).Scan(
+		err := r.db.QueryRow(utils.SelectByIDQuery, bookID).Scan(
 			&foundBook.ID,
 			&foundBook.ISBN,
 			&foundBook.Title,

@@ -7,7 +7,7 @@ import (
 	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/utils"
 	"github.com/andreiac-silva/golang-orm-benchmarks/model"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 )
 
 var columns = []string{"isbn", "title", "author", "genre", "quantity", "publicized_at"}
@@ -102,15 +102,27 @@ func (p *PgxBenchmark) Delete(b *testing.B) {
 	BeforeBenchmark()
 
 	book := model.NewBook()
-	var id int64
-	err := p.db.QueryRow(p.ctx, utils.InsertReturningIDQuery,
-		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
+	savedIDs := make([]int64, b.N)
+	for i := 0; i < b.N; i++ {
+		var id int64
+		err := p.db.QueryRow(p.ctx, utils.InsertReturningIDQuery,
+			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
+		if err != nil {
+			b.Error(err)
+		}
+		savedIDs[i] = id
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int64
 	for i := 0; i < b.N; i++ {
-		_, err = p.db.Exec(p.ctx, utils.DeleteQuery, id)
+		b.StopTimer()
+		bookID = savedIDs[i]
+		b.StartTimer()
+
+		_, err := p.db.Exec(p.ctx, utils.DeleteQuery, bookID)
 
 		b.StopTimer()
 		if err != nil {
@@ -124,16 +136,28 @@ func (p *PgxBenchmark) FindByID(b *testing.B) {
 	BeforeBenchmark()
 
 	book := model.NewBook()
-	var id int64
-	err := p.db.QueryRow(p.ctx, utils.InsertReturningIDQuery,
-		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
+	savedIDs := make([]int64, b.N)
+	for i := 0; i < b.N; i++ {
+		var id int64
+		err := p.db.QueryRow(p.ctx, utils.InsertReturningIDQuery,
+			book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
+		if err != nil {
+			b.Error(err)
+		}
+		savedIDs[i] = id
+	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int64
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		bookID = savedIDs[i]
+		b.StartTimer()
+
 		var foundBook model.Book
-		err = p.db.QueryRow(p.ctx, utils.SelectByIDQuery, id).Scan(
+		err := p.db.QueryRow(p.ctx, utils.SelectByIDQuery, bookID).Scan(
 			&foundBook.ID,
 			&foundBook.ISBN,
 			&foundBook.Title,
@@ -153,6 +177,7 @@ func (p *PgxBenchmark) FindByID(b *testing.B) {
 
 func (p *PgxBenchmark) FindPaginating(b *testing.B) {
 	BeforeBenchmark()
+
 	n := b.N
 	var rows = make([][]interface{}, 0)
 	for _, book := range model.NewBooks(n) {
@@ -172,7 +197,7 @@ func (p *PgxBenchmark) FindPaginating(b *testing.B) {
 		booksPage := make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
-		rows, err := p.db.Query(p.ctx, utils.SelectPaginatingQuery, i, utils.PageSize)
+		result, err := p.db.Query(p.ctx, utils.SelectPaginatingQuery, i, utils.PageSize)
 
 		b.StopTimer()
 		if err != nil {
@@ -180,8 +205,8 @@ func (p *PgxBenchmark) FindPaginating(b *testing.B) {
 		}
 		b.StartTimer()
 
-		for j := 0; rows.Next() && j < utils.PageSize; j++ {
-			err = rows.Scan(
+		for j := 0; result.Next() && j < utils.PageSize; j++ {
+			err = result.Scan(
 				&booksPage[j].ID,
 				&booksPage[j].ISBN,
 				&booksPage[j].Title,

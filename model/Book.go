@@ -52,16 +52,3 @@ func Chunk(input []*Book, batchSize int) [][]*Book {
 	}
 	return result
 }
-
-func GetMaxID(books []*Book) int64 {
-	if len(books) == 0 {
-		return 0
-	}
-	maxID := books[0].ID
-	for _, book := range books {
-		if book.ID > maxID {
-			maxID = book.ID
-		}
-	}
-	return maxID
-}

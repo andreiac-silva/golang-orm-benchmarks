@@ -1,0 +1,241 @@
+package benchmark
+
+import (
+	"context"
+	"database/sql"
+	"testing"
+
+	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/ent"
+	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/ent/book"
+	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/utils"
+	"github.com/andreiac-silva/golang-orm-benchmarks/model"
+
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
+	// Postgres driver.
+	_ "github.com/jackc/pgx/v5/stdlib"
+)
+
+type EntBenchmark struct {
+	db  *ent.Client
+	ctx context.Context
+}
+
+func NewEntBenchmark() Benchmark {
+	return &EntBenchmark{ctx: context.Background()}
+}
+
+func (o *EntBenchmark) Init() error {
+	db, err := sql.Open("pgx", utils.PostgresDSN)
+	if err != nil {
+		return err
+	}
+	drv := entsql.OpenDB(dialect.Postgres, db)
+	o.db = ent.NewClient(ent.Driver(drv))
+	return nil
+}
+
+func (o *EntBenchmark) Close() error {
+	return o.db.Close()
+}
+
+func (o *EntBenchmark) Insert(b *testing.B) {
+	BeforeBenchmark()
+	newBook := model.NewBook()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		newBook.ID = 0
+		b.StartTimer()
+
+		_, err := o.db.Book.
+			Create().
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt).
+			Save(o.ctx)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+}
+
+func (o *EntBenchmark) InsertBulk(b *testing.B) {
+	BeforeBenchmark()
+	books := model.NewBooks(utils.BulkInsertNumber)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	batch := make([]*ent.BookCreate, len(books))
+	for i, newBook := range books {
+		batch[i] = o.db.Book.Create().
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt)
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := o.db.Book.CreateBulk(batch...).Save(o.ctx)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+
+}
+
+func (o *EntBenchmark) Update(b *testing.B) {
+	BeforeBenchmark()
+	newBook := model.NewBook()
+
+	saved, err := o.db.Book.
+		Create().
+		SetIsbn(newBook.ISBN).
+		SetTitle(newBook.Title).
+		SetAuthor(newBook.Author).
+		SetGenre(newBook.Genre).
+		SetQuantity(newBook.Quantity).
+		SetPublicizedAt(newBook.PublicizedAt).
+		Save(o.ctx)
+	if err != nil {
+		b.Error(err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, err = o.db.Book.
+			UpdateOneID(saved.ID).
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt).
+			Save(o.ctx)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+}
+
+func (o *EntBenchmark) Delete(b *testing.B) {
+	BeforeBenchmark()
+
+	n := b.N
+	books := model.NewBooks(n)
+
+	batch := make([]*ent.BookCreate, len(books))
+	for i, newBook := range books {
+		batch[i] = o.db.Book.Create().
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt)
+	}
+
+	saved, err := o.db.Book.CreateBulk(batch...).Save(o.ctx)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < n; i++ {
+		err = o.db.Book.
+			DeleteOneID(saved[i].ID).
+			Exec(o.ctx)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+}
+
+func (o *EntBenchmark) FindByID(b *testing.B) {
+	BeforeBenchmark()
+	newBook := model.NewBook()
+
+	saved, err := o.db.Book.
+		Create().
+		SetIsbn(newBook.ISBN).
+		SetTitle(newBook.Title).
+		SetAuthor(newBook.Author).
+		SetGenre(newBook.Genre).
+		SetQuantity(newBook.Quantity).
+		SetPublicizedAt(newBook.PublicizedAt).
+		Save(o.ctx)
+	if err != nil {
+		b.Error(err)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, err = o.db.Book.Get(o.ctx, saved.ID)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+}
+
+func (o *EntBenchmark) FindPaginating(b *testing.B) {
+	BeforeBenchmark()
+
+	n := b.N
+	books := model.NewBooks(n)
+
+	batch := make([]*ent.BookCreate, len(books))
+	for i, newBook := range books {
+		batch[i] = o.db.Book.Create().
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt)
+	}
+	_, err := o.db.Book.CreateBulk(batch...).Save(o.ctx)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < n; i++ {
+		_, err = o.db.Book.
+			Query().
+			Where(book.IDGT(i)).
+			Limit(utils.PageSize).
+			All(o.ctx)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
+}

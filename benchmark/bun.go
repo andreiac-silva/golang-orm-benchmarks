@@ -34,6 +34,7 @@ func (o *BunBenchmark) Close() error {
 
 func (o *BunBenchmark) Insert(b *testing.B) {
 	BeforeBenchmark()
+
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -56,6 +57,7 @@ func (o *BunBenchmark) Insert(b *testing.B) {
 
 func (o *BunBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
+
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -80,6 +82,7 @@ func (o *BunBenchmark) InsertBulk(b *testing.B) {
 
 func (o *BunBenchmark) Update(b *testing.B) {
 	BeforeBenchmark()
+
 	book := model.NewBook()
 
 	_, err := o.db.NewInsert().Model(book).Exec(o.ctx)
@@ -115,9 +118,10 @@ func (o *BunBenchmark) Delete(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var book *model.Book
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		book := &model.Book{}
+		book = new(model.Book)
 		book.ID = books[i].ID
 		b.StartTimer()
 
@@ -145,10 +149,11 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var book *model.Book
 	for i := 0; i < n; i++ {
 		b.StopTimer()
 		bookID := books[i].ID
-		book := new(model.Book)
+		book = new(model.Book)
 		b.StartTimer()
 
 		err = o.db.NewSelect().Model(book).Where("id = ?", bookID).Scan(o.ctx)
@@ -174,9 +179,10 @@ func (o *BunBenchmark) FindPaginating(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	booksPage := make([]model.Book, utils.PageSize)
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		booksPage := make([]model.Book, utils.PageSize)
+		booksPage = make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
 		err = o.db.NewSelect().Model(&booksPage).Where("id > ?", i).Limit(utils.PageSize).Scan(o.ctx)

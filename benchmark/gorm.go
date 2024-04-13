@@ -45,6 +45,7 @@ func (o *GormBenchmark) Close() error {
 
 func (o *GormBenchmark) Insert(b *testing.B) {
 	BeforeBenchmark()
+
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -67,6 +68,7 @@ func (o *GormBenchmark) Insert(b *testing.B) {
 
 func (o *GormBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
+
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -91,6 +93,7 @@ func (o *GormBenchmark) InsertBulk(b *testing.B) {
 
 func (o *GormBenchmark) Update(b *testing.B) {
 	BeforeBenchmark()
+
 	book := model.NewBook()
 
 	err := o.db.Create(book).Error
@@ -126,9 +129,10 @@ func (o *GormBenchmark) Delete(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int64
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		bookID := books[i].ID
+		bookID = books[i].ID
 		b.StartTimer()
 
 		err = o.db.Delete(&model.Book{}, bookID).Error
@@ -155,10 +159,12 @@ func (o *GormBenchmark) FindByID(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var book *model.Book
+	var bookID int64
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		book := &model.Book{}
-		bookID := books[i].ID
+		book = new(model.Book)
+		bookID = books[i].ID
 		b.StartTimer()
 
 		err = o.db.First(book, bookID).Error
@@ -190,9 +196,10 @@ func (o *GormBenchmark) FindPaginating(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	booksPage := make([]model.Book, utils.PageSize)
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		booksPage := make([]model.Book, utils.PageSize)
+		booksPage = make([]model.Book, utils.PageSize)
 		b.StartTimer()
 
 		err := o.db.Limit(utils.PageSize).Where("id > ?", i).Find(&booksPage).Error
