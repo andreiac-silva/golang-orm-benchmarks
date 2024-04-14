@@ -140,7 +140,6 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 
 	n := b.N
 	books := model.NewBooks(n)
-
 	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)
 	if err != nil {
 		b.Error(err)
@@ -150,10 +149,11 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 	b.ResetTimer()
 
 	var book *model.Book
+	var bookID int64
 	for i := 0; i < n; i++ {
 		b.StopTimer()
-		bookID := books[i].ID
 		book = new(model.Book)
+		bookID = books[i].ID
 		b.StartTimer()
 
 		err = o.db.NewSelect().Model(book).Where("id = ?", bookID).Scan(o.ctx)

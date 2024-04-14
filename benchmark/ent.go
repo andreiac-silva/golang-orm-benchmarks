@@ -41,6 +41,7 @@ func (o *EntBenchmark) Close() error {
 
 func (o *EntBenchmark) Insert(b *testing.B) {
 	BeforeBenchmark()
+
 	newBook := model.NewBook()
 
 	b.ReportAllocs()
@@ -71,6 +72,7 @@ func (o *EntBenchmark) Insert(b *testing.B) {
 
 func (o *EntBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
+
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -143,7 +145,6 @@ func (o *EntBenchmark) Delete(b *testing.B) {
 
 	n := b.N
 	books := model.NewBooks(n)
-
 	batch := make([]*ent.BookCreate, len(books))
 	for i, newBook := range books {
 		batch[i] = o.db.Book.Create().
@@ -175,26 +176,32 @@ func (o *EntBenchmark) Delete(b *testing.B) {
 
 func (o *EntBenchmark) FindByID(b *testing.B) {
 	BeforeBenchmark()
-	newBook := model.NewBook()
 
-	saved, err := o.db.Book.
-		Create().
-		SetIsbn(newBook.ISBN).
-		SetTitle(newBook.Title).
-		SetAuthor(newBook.Author).
-		SetGenre(newBook.Genre).
-		SetQuantity(newBook.Quantity).
-		SetPublicizedAt(newBook.PublicizedAt).
-		Save(o.ctx)
-	if err != nil {
-		b.Error(err)
+	n := b.N
+	books := model.NewBooks(n)
+	batch := make([]*ent.BookCreate, len(books))
+	for i, newBook := range books {
+		batch[i] = o.db.Book.Create().
+			SetIsbn(newBook.ISBN).
+			SetTitle(newBook.Title).
+			SetAuthor(newBook.Author).
+			SetGenre(newBook.Genre).
+			SetQuantity(newBook.Quantity).
+			SetPublicizedAt(newBook.PublicizedAt)
 	}
+
+	saved, err := o.db.Book.CreateBulk(batch...).Save(o.ctx)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
+	var bookID int
 	for i := 0; i < b.N; i++ {
-		_, err = o.db.Book.Get(o.ctx, saved.ID)
+		b.StopTimer()
+		bookID = saved[i].ID
+		b.StartTimer()
+
+		_, err = o.db.Book.Get(o.ctx, bookID)
 
 		b.StopTimer()
 		if err != nil {
@@ -209,7 +216,6 @@ func (o *EntBenchmark) FindPaginating(b *testing.B) {
 
 	n := b.N
 	books := model.NewBooks(n)
-
 	batch := make([]*ent.BookCreate, len(books))
 	for i, newBook := range books {
 		batch[i] = o.db.Book.Create().

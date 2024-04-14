@@ -33,6 +33,7 @@ func (r *RawBenchmark) Close() error {
 
 func (r *RawBenchmark) Insert(b *testing.B) {
 	BeforeBenchmark()
+
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -52,6 +53,7 @@ func (r *RawBenchmark) Insert(b *testing.B) {
 
 func (r *RawBenchmark) InsertBulk(b *testing.B) {
 	BeforeBenchmark()
+
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -70,8 +72,8 @@ func (r *RawBenchmark) InsertBulk(b *testing.B) {
 
 func (r *RawBenchmark) Update(b *testing.B) {
 	BeforeBenchmark()
-	book := model.NewBook()
 
+	book := model.NewBook()
 	var id int64
 	err := r.db.QueryRow(utils.InsertReturningIDQuery,
 		book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt).Scan(&id)
