@@ -8,9 +8,6 @@ import (
 
 	"github.com/andreiac-silva/golang-orm-benchmarks/benchmark/utils"
 	"github.com/andreiac-silva/golang-orm-benchmarks/model"
-
-	// Postgres driver.
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type RawBenchmark struct {
@@ -32,8 +29,6 @@ func (r *RawBenchmark) Close() error {
 }
 
 func (r *RawBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -52,8 +47,6 @@ func (r *RawBenchmark) Insert(b *testing.B) {
 }
 
 func (r *RawBenchmark) InsertBulk(b *testing.B) {
-	BeforeBenchmark()
-
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -71,8 +64,6 @@ func (r *RawBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (r *RawBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 	var id int64
 	err := r.db.QueryRow(utils.InsertReturningIDQuery,
@@ -97,8 +88,6 @@ func (r *RawBenchmark) Update(b *testing.B) {
 }
 
 func (r *RawBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	book := model.NewBook()
 	bookIDs := make([]int64, 0, n)
@@ -132,8 +121,6 @@ func (r *RawBenchmark) Delete(b *testing.B) {
 }
 
 func (r *RawBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 	savedIDs := make([]int64, b.N)
 	for i := 0; i < b.N; i++ {
@@ -150,12 +137,13 @@ func (r *RawBenchmark) FindByID(b *testing.B) {
 	b.ResetTimer()
 
 	var bookID int64
+	var foundBook model.Book
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		bookID = savedIDs[i]
+		foundBook = model.Book{}
 		b.StartTimer()
 
-		var foundBook model.Book
 		err := r.db.QueryRow(utils.SelectByIDQuery, bookID).Scan(
 			&foundBook.ID,
 			&foundBook.ISBN,
@@ -175,8 +163,6 @@ func (r *RawBenchmark) FindByID(b *testing.B) {
 }
 
 func (r *RawBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	batches := model.Chunk(books, utils.BatchSize)

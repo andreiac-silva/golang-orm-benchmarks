@@ -33,8 +33,6 @@ func (o *BunBenchmark) Close() error {
 }
 
 func (o *BunBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -56,8 +54,6 @@ func (o *BunBenchmark) Insert(b *testing.B) {
 }
 
 func (o *BunBenchmark) InsertBulk(b *testing.B) {
-	BeforeBenchmark()
-
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -81,8 +77,6 @@ func (o *BunBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (o *BunBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	_, err := o.db.NewInsert().Model(book).Exec(o.ctx)
@@ -105,8 +99,6 @@ func (o *BunBenchmark) Update(b *testing.B) {
 }
 
 func (o *BunBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 
@@ -136,8 +128,6 @@ func (o *BunBenchmark) Delete(b *testing.B) {
 }
 
 func (o *BunBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)
@@ -167,8 +157,6 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 }
 
 func (o *BunBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)

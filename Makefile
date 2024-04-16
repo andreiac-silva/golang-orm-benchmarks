@@ -1,0 +1,27 @@
+benchmark-all: # Run all benchmarks
+	docker compose up -d
+	go run main.go -operation all
+
+benchmark-insert: # Run insert benchmarks
+	docker compose up -d
+	go run main.go -operation insert
+
+benchmark-insert-bulk: # Run insert bulk benchmarks
+	docker-compose up -d --no-recreate
+	go run main.go -operation insert-bulk
+
+benchmark-update: # Run update benchmarks
+	docker-compose up -d --no-recreate
+	go run main.go -operation update
+
+benchmark-delete: # Run delete benchmarks
+	docker-compose up -d --no-recreate
+	go run main.go -operation delete
+
+benchmark-select-one: # Run select one benchmarks
+	docker-compose up -d --no-recreate
+	go run main.go -operation select-one
+
+benchmark-select-paginating: # Run select paginating benchmarks
+	docker-compose up -d --no-recreate
+	go run main.go -operation select-paginating

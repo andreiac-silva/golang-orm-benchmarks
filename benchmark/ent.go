@@ -40,8 +40,6 @@ func (o *EntBenchmark) Close() error {
 }
 
 func (o *EntBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	newBook := model.NewBook()
 
 	b.ReportAllocs()
@@ -71,8 +69,6 @@ func (o *EntBenchmark) Insert(b *testing.B) {
 }
 
 func (o *EntBenchmark) InsertBulk(b *testing.B) {
-	BeforeBenchmark()
-
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -102,7 +98,6 @@ func (o *EntBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (o *EntBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
 	newBook := model.NewBook()
 
 	saved, err := o.db.Book.
@@ -141,8 +136,6 @@ func (o *EntBenchmark) Update(b *testing.B) {
 }
 
 func (o *EntBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	batch := make([]*ent.BookCreate, len(books))
@@ -175,8 +168,6 @@ func (o *EntBenchmark) Delete(b *testing.B) {
 }
 
 func (o *EntBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	batch := make([]*ent.BookCreate, len(books))
@@ -212,8 +203,6 @@ func (o *EntBenchmark) FindByID(b *testing.B) {
 }
 
 func (o *EntBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 	batch := make([]*ent.BookCreate, len(books))

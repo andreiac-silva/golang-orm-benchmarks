@@ -37,8 +37,6 @@ func (s *SqlcBenchmark) Close() error {
 }
 
 func (s *SqlcBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -72,8 +70,6 @@ func (s *SqlcBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (s *SqlcBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	id, err := s.repository.CreateReturningID(s.ctx, repository.CreateReturningIDParams{
@@ -111,8 +107,6 @@ func (s *SqlcBenchmark) Update(b *testing.B) {
 }
 
 func (s *SqlcBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	book := model.NewBook()
 	bookIDs := make([]int32, n)
@@ -146,11 +140,9 @@ func (s *SqlcBenchmark) Delete(b *testing.B) {
 }
 
 func (s *SqlcBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	book := model.NewBook()
-	bookIDs := make([]int32, n)
+	savedIDs := make([]int32, n)
 	for i := 0; i < n; i++ {
 		id, err := s.repository.CreateReturningID(s.ctx, repository.CreateReturningIDParams{
 			Isbn:         book.ISBN,
@@ -163,7 +155,7 @@ func (s *SqlcBenchmark) FindByID(b *testing.B) {
 		if err != nil {
 			b.Error(err)
 		}
-		bookIDs[i] = id
+		savedIDs[i] = id
 	}
 
 	b.ReportAllocs()
@@ -172,7 +164,7 @@ func (s *SqlcBenchmark) FindByID(b *testing.B) {
 	var bookID int32
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		bookID = bookIDs[i]
+		bookID = savedIDs[i]
 		b.StartTimer()
 
 		_, err := s.repository.Get(s.ctx, bookID)
@@ -186,8 +178,6 @@ func (s *SqlcBenchmark) FindByID(b *testing.B) {
 }
 
 func (s *SqlcBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	book := model.NewBook()
 	bookIDs := make([]int32, n)

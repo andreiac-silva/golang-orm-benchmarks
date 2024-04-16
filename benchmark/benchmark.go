@@ -21,3 +21,9 @@ type Benchmark interface {
 func BeforeBenchmark() {
 	utils.RecreateDatabase()
 }
+
+type ResultWrapper struct {
+	Orm        string
+	Benchmarks map[string]testing.BenchmarkResult
+	Err        error
+}

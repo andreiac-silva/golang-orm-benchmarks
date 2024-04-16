@@ -34,8 +34,6 @@ func (p *PgxBenchmark) Close() error {
 }
 
 func (p *PgxBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -54,8 +52,6 @@ func (p *PgxBenchmark) Insert(b *testing.B) {
 }
 
 func (p *PgxBenchmark) InsertBulk(b *testing.B) {
-	BeforeBenchmark()
-
 	var rows = make([][]interface{}, 0)
 	for _, book := range model.NewBooks(utils.BulkInsertNumber) {
 		rows = append(rows, []interface{}{book.ISBN, book.Title, book.Author, book.Genre, book.Quantity, book.PublicizedAt})
@@ -76,8 +72,6 @@ func (p *PgxBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (p *PgxBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 	var id int64
 	err := p.db.QueryRow(p.ctx, utils.InsertReturningIDQuery,
@@ -99,8 +93,6 @@ func (p *PgxBenchmark) Update(b *testing.B) {
 }
 
 func (p *PgxBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 	savedIDs := make([]int64, b.N)
 	for i := 0; i < b.N; i++ {
@@ -133,8 +125,6 @@ func (p *PgxBenchmark) Delete(b *testing.B) {
 }
 
 func (p *PgxBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 	savedIDs := make([]int64, b.N)
 	for i := 0; i < b.N; i++ {
@@ -151,12 +141,13 @@ func (p *PgxBenchmark) FindByID(b *testing.B) {
 	b.ResetTimer()
 
 	var bookID int64
+	var foundBook model.Book
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		bookID = savedIDs[i]
+		foundBook = model.Book{}
 		b.StartTimer()
 
-		var foundBook model.Book
 		err := p.db.QueryRow(p.ctx, utils.SelectByIDQuery, bookID).Scan(
 			&foundBook.ID,
 			&foundBook.ISBN,
@@ -176,8 +167,6 @@ func (p *PgxBenchmark) FindByID(b *testing.B) {
 }
 
 func (p *PgxBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	var rows = make([][]interface{}, 0)
 	for _, book := range model.NewBooks(n) {

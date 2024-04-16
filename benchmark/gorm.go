@@ -44,8 +44,6 @@ func (o *GormBenchmark) Close() error {
 }
 
 func (o *GormBenchmark) Insert(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	b.ReportAllocs()
@@ -67,8 +65,6 @@ func (o *GormBenchmark) Insert(b *testing.B) {
 }
 
 func (o *GormBenchmark) InsertBulk(b *testing.B) {
-	BeforeBenchmark()
-
 	books := model.NewBooks(utils.BulkInsertNumber)
 
 	b.ReportAllocs()
@@ -92,8 +88,6 @@ func (o *GormBenchmark) InsertBulk(b *testing.B) {
 }
 
 func (o *GormBenchmark) Update(b *testing.B) {
-	BeforeBenchmark()
-
 	book := model.NewBook()
 
 	err := o.db.Create(book).Error
@@ -116,8 +110,6 @@ func (o *GormBenchmark) Update(b *testing.B) {
 }
 
 func (o *GormBenchmark) Delete(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 
@@ -146,8 +138,6 @@ func (o *GormBenchmark) Delete(b *testing.B) {
 }
 
 func (o *GormBenchmark) FindByID(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 
@@ -178,8 +168,6 @@ func (o *GormBenchmark) FindByID(b *testing.B) {
 }
 
 func (o *GormBenchmark) FindPaginating(b *testing.B) {
-	BeforeBenchmark()
-
 	n := b.N
 	books := model.NewBooks(n)
 
