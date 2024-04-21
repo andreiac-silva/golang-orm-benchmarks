@@ -28,7 +28,6 @@ func (o *GormBenchmark) Init() error {
 	})
 	gormConfig := &gorm.Config{
 		SkipDefaultTransaction: true,
-		PrepareStmt:            true,
 		Logger:                 logger.Default.LogMode(logger.Silent),
 	}
 	o.db, err = gorm.Open(pgConfig, gormConfig)
