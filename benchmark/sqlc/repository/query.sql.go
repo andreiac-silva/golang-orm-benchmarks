@@ -94,17 +94,17 @@ func (q *Queries) Get(ctx context.Context, id int32) (Book, error) {
 	return i, err
 }
 
-const listPaging = `-- name: ListPaging :many
+const listPaginating = `-- name: ListPaginating :many
 SELECT id, isbn, title, author, genre, quantity, publicized_at FROM books WHERE id > $1 LIMIT $2
 `
 
-type ListPagingParams struct {
+type ListPaginatingParams struct {
 	ID    int32
 	Limit int32
 }
 
-func (q *Queries) ListPaging(ctx context.Context, arg ListPagingParams) ([]Book, error) {
-	rows, err := q.db.Query(ctx, listPaging, arg.ID, arg.Limit)
+func (q *Queries) ListPaginating(ctx context.Context, arg ListPaginatingParams) ([]Book, error) {
+	rows, err := q.db.Query(ctx, listPaginating, arg.ID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

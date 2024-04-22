@@ -200,7 +200,7 @@ func (s *SqlcBenchmark) FindPaginating(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := s.repository.ListPaging(s.ctx, repository.ListPagingParams{
+		_, err := s.repository.ListPaginating(s.ctx, repository.ListPaginatingParams{
 			ID:    int32(i),
 			Limit: utils.PageSize,
 		})

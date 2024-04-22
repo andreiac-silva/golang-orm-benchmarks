@@ -23,5 +23,5 @@ DELETE FROM books WHERE id = $1;
 -- name: Get :one
 SELECT * FROM books WHERE id = $1 ;
 
--- name: ListPaging :many
+-- name: ListPaginating :many
 SELECT * FROM books WHERE id > $1 LIMIT $2;
