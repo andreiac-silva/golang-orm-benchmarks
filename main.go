@@ -139,7 +139,12 @@ func doWriteBenchmark(table *tabwriter.Writer, results []benchmark.ResultWrapper
 				continue
 			}
 			_, _ = fmt.Fprintf(table, "%s:\t%d\t%d ns/op\t%d B/op\t%d allocs/op\n",
-				r.Orm, result.N, result.NsPerOp(), result.MemBytes, result.MemAllocs)
+				r.Orm,
+				result.N,
+				result.NsPerOp(),
+				result.AllocedBytesPerOp(),
+				result.AllocsPerOp(),
+			)
 		}
 
 		_ = table.Flush()
