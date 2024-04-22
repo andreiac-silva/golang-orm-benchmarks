@@ -37,6 +37,15 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) error {
 	return err
 }
 
+type CreateManyParams struct {
+	Isbn         string
+	Title        string
+	Author       string
+	Genre        string
+	Quantity     int32
+	PublicizedAt pgtype.Timestamp
+}
+
 const createReturningID = `-- name: CreateReturningID :one
 INSERT INTO books (isbn, title, author, genre, quantity, publicized_at)
 VALUES ($1, $2, $3, $4, $5, $6)

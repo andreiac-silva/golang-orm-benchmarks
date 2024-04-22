@@ -2,6 +2,10 @@
 INSERT INTO books (isbn, title, author, genre, quantity, publicized_at)
 VALUES ($1, $2, $3, $4, $5, $6);
 
+-- name: CreateMany :copyfrom
+INSERT INTO books (isbn, title, author, genre, quantity, publicized_at)
+VALUES ($1, $2, $3, $4, $5, $6);
+
 -- name: CreateReturningID :one
 INSERT INTO books (isbn, title, author, genre, quantity, publicized_at)
 VALUES ($1, $2, $3, $4, $5, $6)

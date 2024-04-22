@@ -65,8 +65,32 @@ func (s *SqlcBenchmark) Insert(b *testing.B) {
 }
 
 func (s *SqlcBenchmark) InsertBulk(b *testing.B) {
-	// Not supported, but there is an alternative. If the pgx is used, it is possible to use the CopyFrom function.
-	b.SkipNow()
+	books := model.NewBooks(utils.BulkInsertNumber)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	batch := make([]repository.CreateManyParams, len(books))
+	for i, newBook := range books {
+		batch[i] = repository.CreateManyParams{
+			Isbn:         newBook.ISBN,
+			Title:        newBook.Title,
+			Author:       newBook.Title,
+			Genre:        newBook.Genre,
+			Quantity:     int32(newBook.Quantity),
+			PublicizedAt: pgtype.Timestamp{Time: newBook.PublicizedAt, Valid: true},
+		}
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := s.repository.CreateMany(s.ctx, batch)
+
+		b.StopTimer()
+		if err != nil {
+			b.Error(err)
+		}
+		b.StartTimer()
+	}
 }
 
 func (s *SqlcBenchmark) Update(b *testing.B) {
