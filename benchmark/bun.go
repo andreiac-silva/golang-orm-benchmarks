@@ -156,7 +156,7 @@ func (o *BunBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (o *BunBenchmark) FindPaginating(b *testing.B) {
+func (o *BunBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	books := model.NewBooks(n)
 	_, err := o.db.NewInsert().Model(&books).Exec(o.ctx)

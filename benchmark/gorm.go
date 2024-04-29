@@ -166,7 +166,7 @@ func (o *GormBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (o *GormBenchmark) FindPaginating(b *testing.B) {
+func (o *GormBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	books := model.NewBooks(n)
 

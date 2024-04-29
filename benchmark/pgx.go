@@ -166,7 +166,7 @@ func (p *PgxBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (p *PgxBenchmark) FindPaginating(b *testing.B) {
+func (p *PgxBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	var rows = make([][]interface{}, 0)
 	for _, book := range model.NewBooks(n) {

@@ -162,7 +162,7 @@ func (r *RawBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (r *RawBenchmark) FindPaginating(b *testing.B) {
+func (r *RawBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	books := model.NewBooks(n)
 	batches := model.Chunk(books, utils.BatchSize)

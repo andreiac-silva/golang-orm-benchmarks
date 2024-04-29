@@ -22,6 +22,6 @@ benchmark-select-one: # Run select one benchmarks
 	docker-compose up -d --no-recreate
 	go run main.go -operation select-one
 
-benchmark-select-paginating: # Run select paginating benchmarks
+benchmark-select-page: # Run select page benchmarks
 	docker-compose up -d --no-recreate
-	go run main.go -operation select-paginating
+	go run main.go -operation select-page

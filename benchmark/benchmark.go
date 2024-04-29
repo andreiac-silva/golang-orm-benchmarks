@@ -15,7 +15,7 @@ type Benchmark interface {
 	Update(b *testing.B)
 	Delete(b *testing.B)
 	FindByID(b *testing.B)
-	FindPaginating(b *testing.B)
+	FindPage(b *testing.B)
 }
 
 func BeforeBenchmark() {

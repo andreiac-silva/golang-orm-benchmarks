@@ -201,7 +201,7 @@ func (s *SqlcBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (s *SqlcBenchmark) FindPaginating(b *testing.B) {
+func (s *SqlcBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	book := model.NewBook()
 	bookIDs := make([]int32, n)

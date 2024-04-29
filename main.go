@@ -20,12 +20,12 @@ import (
 const (
 	all = "all"
 
-	insertOp         = "insert"
-	insertBulkOp     = "insert-bulk"
-	updateOp         = "update"
-	deleteOp         = "delete"
-	selectOne        = "select-one"
-	selectPaginating = "select-paginating"
+	insertOp     = "insert"
+	insertBulkOp = "insert-bulk"
+	updateOp     = "update"
+	deleteOp     = "delete"
+	selectOne    = "select-one"
+	selectPage   = "select-page"
 
 	raw  = "raw"
 	pgx  = "pgx"
@@ -37,7 +37,7 @@ const (
 
 var (
 	benchmarksMap   = map[string]benchmark.Benchmark{}
-	validOperations = []string{insertOp, insertBulkOp, updateOp, deleteOp, selectOne, selectPaginating}
+	validOperations = []string{insertOp, insertBulkOp, updateOp, deleteOp, selectOne, selectPage}
 )
 
 func main() {
@@ -51,7 +51,7 @@ func main() {
 	loadBenchmarks()
 	shuffleBenchmarksMap()
 	results := executeBenchmarks(*operation)
-	writeBenchmark(results, *operation)
+	printBenchmark(results, *operation)
 }
 
 func loadBenchmarks() {
@@ -98,12 +98,12 @@ func doExecuteBenchmarks(b benchmark.Benchmark, orm, operation string) benchmark
 	}
 	resultMap := make(map[string]testing.BenchmarkResult)
 	operations := map[string]func(*testing.B){
-		insertOp:         b.Insert,
-		insertBulkOp:     b.InsertBulk,
-		updateOp:         b.Update,
-		deleteOp:         b.Delete,
-		selectOne:        b.FindByID,
-		selectPaginating: b.FindPaginating,
+		insertOp:     b.Insert,
+		insertBulkOp: b.InsertBulk,
+		updateOp:     b.Update,
+		deleteOp:     b.Delete,
+		selectOne:    b.FindByID,
+		selectPage:   b.FindPage,
 	}
 	if operation == all {
 		for op, f := range operations {
@@ -118,17 +118,17 @@ func doExecuteBenchmarks(b benchmark.Benchmark, orm, operation string) benchmark
 	return wrapper
 }
 
-func writeBenchmark(results []benchmark.ResultWrapper, operation string) {
+func printBenchmark(results []benchmark.ResultWrapper, operation string) {
 	table := new(tabwriter.Writer)
 	table.Init(os.Stdout, 0, 8, 2, '\t', tabwriter.AlignRight)
 	if operation == all {
-		doWriteBenchmark(table, results, validOperations...)
+		doPrintBenchmark(table, results, validOperations...)
 	} else {
-		doWriteBenchmark(table, results, operation)
+		doPrintBenchmark(table, results, operation)
 	}
 }
 
-func doWriteBenchmark(table *tabwriter.Writer, results []benchmark.ResultWrapper, operations ...string) {
+func doPrintBenchmark(table *tabwriter.Writer, results []benchmark.ResultWrapper, operations ...string) {
 	for _, op := range operations {
 		_, _ = fmt.Fprint(table, "\n")
 		_, _ = fmt.Fprintf(table, "Operation: %s\n", op)

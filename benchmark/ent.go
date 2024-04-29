@@ -202,7 +202,7 @@ func (o *EntBenchmark) FindByID(b *testing.B) {
 	}
 }
 
-func (o *EntBenchmark) FindPaginating(b *testing.B) {
+func (o *EntBenchmark) FindPage(b *testing.B) {
 	n := b.N
 	books := model.NewBooks(n)
 	batch := make([]*ent.BookCreate, len(books))

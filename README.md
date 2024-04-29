@@ -25,7 +25,7 @@ $ make benchmark-insert-bulk
 $ make benchmark-update
 $ make benchmark-delete
 $ make benchmark-select-one
-$ make benchmark-select-paginating
+$ make benchmark-select-page
 ```
 
 Modeling credits: [go-orm-benchmarks](https://github.com/efectn/go-orm-benchmarks).
