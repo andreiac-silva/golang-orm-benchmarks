@@ -28,4 +28,6 @@ $ make benchmark-select-one
 $ make benchmark-select-page
 ```
 
+You can take a look at the benchmarks results [here](benchmarks_results.pdf).
+
 Modeling credits: [go-orm-benchmarks](https://github.com/efectn/go-orm-benchmarks).
