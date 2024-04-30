@@ -1,9 +1,9 @@
 benchmark-all: # Run all benchmarks
-	docker compose up -d
+	docker compose up -d --no-recreate
 	go run main.go -operation all
 
 benchmark-insert: # Run insert benchmarks
-	docker compose up -d
+	docker compose up -d --no-recreate
 	go run main.go -operation insert
 
 benchmark-insert-bulk: # Run insert bulk benchmarks
