@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+// TODO: Add these ones to the .env file.
 const (
 	BulkInsertNumber = 2000
 	BatchSize        = 10000
